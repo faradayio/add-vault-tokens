@@ -1,41 +1,78 @@
-# AddVaultTokens
+# `add-vault-tokens`
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/add_vault_tokens`. To experiment with that code, run `bin/console` for an interactive prompt.
+This is a short script for use with [vault](https://vaultproject.io/) and
+[docker-compose](https://docs.docker.com/compose/).  Given a
+`docker-compose.yml` file and a `VAULT_MASTER_TOKEN` as input, this script
+will generate a new, limited vault token for each application described in
+the `docker-compose.yml` file.
 
-TODO: Delete this and the text above, and describe your gem
+You can install this as:
 
-## Installation
-
-Add this line to your application's Gemfile:
-
-```ruby
-gem 'add_vault_tokens'
+```sh
+gem install add-vault-tokens
 ```
-
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install add_vault_tokens
 
 ## Usage
 
-TODO: Write usage instructions here
+Assume you have a `docker-compose.yml` containing:
 
-## Development
+```yml
+app:
+  image: "example/app"
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment. Run `bundle exec add_vault_tokens` to use the gem in this directory, ignoring other installed copies of this gem.
+service:
+  image: "example/service"
+```
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+Also assume that your vault server has two policies defined, named `app`
+and `service`.  First, you need to create a `VAULT_MASTER_TOKEN` for use
+with `add-vault-tokens`:
+
+```sh
+vault token-create -policy=app -policy=service
+```
+
+Then you run `add-vault-tokens` as follows:
+
+```
+# The URL of your vault server.
+export VAULT_ADDR=https://...
+
+# The master token you just generated.
+export VAULT_MASTER_TOKEN=...
+
+# Generate tokens
+add-vault-tokens docker-compose.yml
+```
+
+This will update `docker-compose.yml` to include new environment variables:
+
+```yml
+app:
+  image: "example/app"
+  environment:
+    VAULT_ADDR="https://..."
+    # A new token with policy "app":
+    VAULT_TOKEN="..."
+
+service:
+  image: "example/service"
+  environment:
+    VAULT_ADDR="https://..."
+    # A new token with policy "service":
+    VAULT_TOKEN="..."
+```
+
+If a `VAULT_ENV` environment variable is present, it will also be added to
+the `docker-compose.yml` file.
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/add_vault_tokens.
-
+Bug reports and pull requests are welcome on GitHub at
+https://github.com/faradayio/add-vault-tokens.
 
 ## License
 
-The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
+The gem is available as open source under the terms of the
+[MIT License](http://opensource.org/licenses/MIT).
 
