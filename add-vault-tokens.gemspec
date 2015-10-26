@@ -9,18 +9,10 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Eric Kidd"]
   spec.email         = ["git@randomhacks.net"]
 
-  spec.summary       = %q{TODO: Write a short summary, because Rubygems requires one.}
-  spec.description   = %q{TODO: Write a longer description or delete this line.}
-  spec.homepage      = "TODO: Put your gem's website or public repo URL here."
+  spec.summary       = %q{Issue per-application Vault tokens to apps in docker-compose.yml}
+  spec.description   = %q{Given a master vault token, issue short-lived, per-application tokens to each app in a docker-compose.yml file, restricting each app the to corresponding security policy.}
+  spec.homepage      = "https://github.com/faradayio/add-vault-tokens"
   spec.license       = "MIT"
-
-  # Prevent pushing this gem to RubyGems.org by setting 'allowed_push_host', or
-  # delete this section to allow pushing this gem to any host.
-  if spec.respond_to?(:metadata)
-    spec.metadata['allowed_push_host'] = "TODO: Set to 'http://mygemserver.com'"
-  else
-    raise "RubyGems 2.0 or newer is required to protect against public gem pushes."
-  end
 
   spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
   spec.bindir        = "exe"
