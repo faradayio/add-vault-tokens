@@ -1,3 +1,35 @@
 #!/usr/bin/env ruby
 
+require "optparse"
+require "psych"
 require "add_vault_tokens"
+
+# Set up command-line option defaults.
+options = { prefix: '' }
+options[:prefix] = "#{ENV.fetch('VAULT_ENV')}-" if ENV.has_key?('VAULT_ENV')
+
+# Parse our command-line.
+OptionParser.new do |opts|
+  opts.banner = "Usage: example.rb [options]"
+
+  opts.on("-p", "--prefix", "Prefix to add to each app name") do |p|
+    options[:prefix] = p
+  end
+end.parse!
+paths = ARGV
+
+# Connect to our vault server.
+AddVaultTokens.connect
+
+# Renew our master token.
+STDERR.puts("Renewing VAULT_MASTER_TOKEN")
+AddVaultTokens.renew_master_token
+
+# For each input file, add the appropriate tokens to each app.
+paths.each do |path|
+  yml = Psych.load_file(path)
+  result = AddVaultTokens.add_tokens_to_apps(yml, prefix: options.fetch(:prefix))
+  File.write("#{path}.tmp", Psych.dump(result))
+  # Atomically overwrite existing file.
+  File.rename("#{path}.tmp", path)
+end
