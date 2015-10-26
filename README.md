@@ -24,12 +24,47 @@ service:
   image: "example/service"
 ```
 
-Also assume that your vault server has two policies defined, named `app`
-and `service`.  First, you need to create a `VAULT_MASTER_TOKEN` for use
-with `add-vault-tokens`:
+First, you need to create a security policy `master-token.hcl` for the
+master token:
+
+```hcl
+# Mandatory for all policies.
+path "auth/token/lookup-self" {
+  policy = "read"
+}
+
+# Allow listing all available policies, so we can decide which child tokens
+# to generate.
+path "sys/policy" {
+  policy = "sudo"
+}
+
+# Allow creation of child tokens.
+path "auth/token/create" {
+  policy = "write"
+}
+
+# Allow renewal of this token.
+#
+# SECURITY - HACK - We can't just allow renewal via `renew-self` in 0.3, so
+# allow renewal of _any_ token as the next best substitute.
+path "auth/token/renew/*" {
+  policy = "sudo"
+}
+```
+
+This can be loaded using:
 
 ```sh
-vault token-create -policy=app -policy=service
+vault policy-write master-token master-token.hcl
+```
+
+Then you need to define two new policies, `app` and `service`, specifying
+which secrets can be accessed by each container.  Once this is done, you
+can create your `VAULT_MASTER_TOKEN` for use with `add-vault-tokens`:
+
+```sh
+vault token-create -policy=master-token -policy=app -policy=service
 ```
 
 Then you run `add-vault-tokens` as follows:
@@ -64,7 +99,8 @@ service:
 ```
 
 If a `VAULT_ENV` environment variable is present, it will also be added to
-the `docker-compose.yml` file.
+the `docker-compose.yml` file, and the policy names will be prefixed by
+`$VAULT_ENV-`.
 
 ## Contributing
 
