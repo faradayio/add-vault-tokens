@@ -17,6 +17,12 @@ module AddVaultTokens
       @policies.include?(app_name)
     end
 
+    # Renew our master token.  We do this in case it's getting old, in
+    # which case we don't want to risk our generated tokens expiring early.
+    def renew_master_token
+      Vault.auth_token.renew(ENV.fetch('VAULT_MASTER_TOKEN'))
+    end
+
     # Create a token for app_name with the appropriate security policy.
     def create_token_for(app_name)
       Vault.auth_token.create(name: app_name, policies: [app_name])

@@ -26,6 +26,11 @@ describe AddVaultTokens do
     AddVaultTokens.connect
   end
 
+  it 'renews the master token' do
+    expect(Vault.auth_token).to receive(:renew).with('123')
+    AddVaultTokens.renew_master_token
+  end
+
   it 'can issue a single token' do
     expect(Vault.auth_token).to receive(:create)
       .with(name: 'staging-api', policies: ['staging-api'])
