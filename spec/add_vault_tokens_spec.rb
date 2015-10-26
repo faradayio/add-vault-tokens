@@ -4,6 +4,7 @@ require 'psych'
 describe AddVaultTokens do
   before do
     allow(ENV).to receive(:fetch).with('VAULT_ADDR') { 'https://example.com' }
+    allow(ENV).to receive(:fetch).with('VAULT_ENV', nil) { 'staging' }
     allow(ENV).to receive(:fetch).with('VAULT_MASTER_TOKEN') { '123' }
     # Define a list of known policies for testing purposes.
     allow(Vault.sys).to receive(:policies) do
@@ -61,12 +62,14 @@ app1:
   environment:
     VAR: "value"
     VAULT_ADDR: "https://example.com"
+    VAULT_ENV: "staging"
     VAULT_TOKEN: "app1-token"
 
 app2:
   image: example/app2
   environment:
     VAULT_ADDR: "https://example.com"
+    VAULT_ENV: "staging"
     VAULT_TOKEN: "app2-token"
 
 unknown:
