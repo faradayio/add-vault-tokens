@@ -5,6 +5,10 @@ describe AddVaultTokens do
   before do
     allow(ENV).to receive(:fetch).with('VAULT_ADDR') { 'https://example.com' }
     allow(ENV).to receive(:fetch).with('VAULT_MASTER_TOKEN') { '123' }
+    # Define a list of known policies for testing purposes.
+    allow(Vault.sys).to receive(:policies) do
+      ['staging-api', 'staging-app1', 'staging-app2']
+    end
   end
 
   def token_double(value='fake_token')
@@ -46,6 +50,9 @@ app1:
 
 app2:
   image: example/app2
+
+unknown:
+  image: example/unknown
 YAML
     output = AddVaultTokens.add_tokens_to_apps(Psych.load(input), prefix: "staging-")
     expected = <<YAML
@@ -61,6 +68,9 @@ app2:
   environment:
     VAULT_ADDR: "https://example.com"
     VAULT_TOKEN: "app2-token"
+
+unknown:
+  image: example/unknown
 YAML
     expect(output).to eq(Psych.load(expected))
   end
