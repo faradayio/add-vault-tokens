@@ -5,7 +5,7 @@ require "psych"
 require "add_vault_tokens"
 
 # Set up command-line option defaults.
-options = { prefix: '' }
+options = { prefix: '', renew: true }
 options[:prefix] = "#{ENV.fetch('VAULT_ENV')}-" if ENV.has_key?('VAULT_ENV')
 
 # Parse our command-line.
@@ -15,6 +15,10 @@ OptionParser.new do |opts|
   opts.on("-p", "--prefix", "Prefix to add to each app name") do |p|
     options[:prefix] = p
   end
+
+  opts.on(nil, "--no-renew", "Do not renew our master token") do |nr|
+    options[:renew] = false
+  end
 end.parse!
 paths = ARGV
 
@@ -22,8 +26,10 @@ paths = ARGV
 AddVaultTokens.connect
 
 # Renew our master token.
-STDERR.puts("Renewing VAULT_MASTER_TOKEN")
-AddVaultTokens.renew_master_token
+if options[:renew]
+  STDERR.puts("Renewing VAULT_MASTER_TOKEN")
+  AddVaultTokens.renew_master_token
+end
 
 # For each input file, add the appropriate tokens to each app.
 paths.each do |path|
