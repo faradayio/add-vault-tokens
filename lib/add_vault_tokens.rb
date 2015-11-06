@@ -36,20 +36,22 @@ module AddVaultTokens
     # appropriate vault-related environment variables injected.  If
     # specified, append `prefix` to each service name in the file before
     # looking up a policy.
-    def add_tokens_to_apps(parsed_yaml, prefix: "")
+    def add_tokens_to_apps(parsed_yaml, quiet: false, prefix: "")
       env = ENV.fetch('VAULT_ENV', nil)
       result = Marshal.load(Marshal.dump(parsed_yaml))
       result.each do |app_name, info|
         full_app_name = prefix + app_name
         if have_policy_for?(full_app_name)
-          STDERR.puts("Issuing token for #{full_app_name}")
+          STDERR.puts("Issuing token for #{full_app_name}") unless quiet
           token = create_token_for(full_app_name)
           info['environment'] ||= {}
           info['environment']['VAULT_ADDR'] = ENV.fetch('VAULT_ADDR')
           info['environment']['VAULT_ENV'] = env if env
           info['environment']['VAULT_TOKEN'] = token.auth.client_token
         else
-          STDERR.puts("WARNING: No policy for #{full_app_name}, so no token issued")
+          unless quiet
+            STDERR.puts("WARNING: No policy for #{full_app_name}, so no token issued")
+          end
         end
       end
       result

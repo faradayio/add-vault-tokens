@@ -5,7 +5,11 @@ require "psych"
 require "add_vault_tokens"
 
 # Set up command-line option defaults.
-options = { prefix: '', renew: true }
+options = {
+  prefix: '',
+  renew: true,
+  quiet: false
+}
 options[:prefix] = "#{ENV.fetch('VAULT_ENV')}-" if ENV.has_key?('VAULT_ENV')
 
 # Parse our command-line.
@@ -19,6 +23,10 @@ OptionParser.new do |opts|
   opts.on(nil, "--no-renew", "Do not renew our master token") do |nr|
     options[:renew] = false
   end
+
+  opts.on('q', "--quiet", "Do not print lots of output") do |nr|
+    options[:quiet] = true
+  end
 end.parse!
 paths = ARGV
 
@@ -26,7 +34,7 @@ paths = ARGV
 AddVaultTokens.connect
 
 # Renew our master token.
-if options[:renew]
+if options.fetch(:renew)
   STDERR.puts("Renewing VAULT_MASTER_TOKEN")
   AddVaultTokens.renew_master_token
 end
@@ -34,7 +42,8 @@ end
 # For each input file, add the appropriate tokens to each app.
 paths.each do |path|
   yml = Psych.load_file(path)
-  result = AddVaultTokens.add_tokens_to_apps(yml, prefix: options.fetch(:prefix))
+  result = AddVaultTokens.add_tokens_to_apps(yml, prefix: options.fetch(:prefix),
+                                             quiet: options.fetch(:quiet))
   File.write("#{path}.tmp", Psych.dump(result))
   # Atomically overwrite existing file.
   File.rename("#{path}.tmp", path)
