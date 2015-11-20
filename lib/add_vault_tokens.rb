@@ -45,7 +45,8 @@ module AddVaultTokens
           STDERR.puts("Issuing token for #{full_app_name}") unless quiet
           token = create_token_for(full_app_name)
           info['environment'] ||= {}
-          info['environment']['VAULT_ADDR'] = ENV.fetch('VAULT_ADDR')
+          info['environment']['VAULT_ADDR'] =
+            ENV.fetch('CONTAINER_VAULT_ADDR', ENV.fetch('VAULT_ADDR'))
           info['environment']['VAULT_ENV'] = env if env
           info['environment']['VAULT_TOKEN'] = token.auth.client_token
         else
