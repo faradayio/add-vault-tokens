@@ -41,6 +41,9 @@ describe AddVaultTokens do
   end
 
   it 'can update a JSON structure with appropriate tokens' do
+    allow(ENV).to receive(:fetch)
+      .with('CONTAINER_VAULT_ADDR', "https://example.com") { "https://example.com" }
+
     # Stub out create_token_for this time, so we don't need to worry about
     # exactly which arguments it uses.
     expect(AddVaultTokens).to receive(:create_token_for)
