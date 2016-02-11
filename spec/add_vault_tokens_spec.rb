@@ -33,7 +33,8 @@ describe AddVaultTokens do
 
   it 'can issue a single token' do
     expect(Vault.auth_token).to receive(:create)
-      .with(name: 'staging-api', ttl: '720h', policies: ['staging-api'])
+      .with(name: 'staging-api', ttl: '720h', policies: ['staging-api'],
+            display_name: anything)
       .and_return(token_double('new_token'))
 
     result = AddVaultTokens.create_token_for('staging-api')

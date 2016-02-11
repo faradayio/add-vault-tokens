@@ -27,8 +27,11 @@ module AddVaultTokens
 
     # Create a token for app_name with the appropriate security policy.
     def create_token_for(app_name)
+      timestamp = Time.now.utc.strftime("%Y%m%d%H%M%S")
+      display = "#{app_name}_#{timestamp}"
       Vault.auth_token.create(name: app_name,
                               ttl: '720h',
+                              display_name: display,
                               policies: [app_name])
     end
 
