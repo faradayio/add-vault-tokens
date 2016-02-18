@@ -53,9 +53,7 @@ module AddVaultTokens
           info['environment']['VAULT_ENV'] = env if env
           info['environment']['VAULT_TOKEN'] = token.auth.client_token
         else
-          unless quiet
-            STDERR.puts("WARNING: No policy for #{full_app_name}, so no token issued")
-          end
+          STDERR.puts("WARNING: No policy for #{full_app_name}, so no token issued")
         end
       end
       result
